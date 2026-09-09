@@ -1,0 +1,19 @@
+{
+  "name": "ai-widget",
+  "version": "1.0.0",
+  "description": "Native Windows and Ubuntu widget for Codex, Claude Code and Antigravity",
+  "main": "native.py",
+  "scripts": {
+    "start": "/usr/bin/python3 native.py",
+    "test": "GSETTINGS_BACKEND=memory /usr/bin/python3 -m unittest discover -s tests -v",
+    "test:ui": "GSETTINGS_BACKEND=memory /usr/bin/python3 tests/ui_checks.py",
+    "connect:claude": "python3 scripts/statusline_bridge.py --install",
+    "disconnect:claude": "python3 scripts/statusline_bridge.py --uninstall",
+    "connect:antigravity": "python3 scripts/statusline_bridge.py --antigravity --install",
+    "disconnect:antigravity": "python3 scripts/statusline_bridge.py --antigravity --uninstall"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

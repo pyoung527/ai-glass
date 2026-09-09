@@ -1,0 +1,10 @@
+node_modules/
+data/
+__pycache__/
+test-results/
+*.log
+build/
+dist/
+*.spec
+.venv/
+.pytest_cache/

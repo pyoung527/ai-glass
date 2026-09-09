@@ -1,0 +1,81 @@
+name: Build and release
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install native dependencies
+        run: sudo apt-get update && sudo apt-get install -y python3-gi gir1.2-gtk-3.0 gir1.2-wnck-3.0 librsvg2-common xvfb xterm
+      - name: Tests
+        run: |
+          GSETTINGS_BACKEND=memory /usr/bin/python3 -m unittest discover -s tests -v
+          xvfb-run -a env GSETTINGS_BACKEND=memory /usr/bin/python3 tests/ui_checks.py
+      - name: Build package
+        run: /usr/bin/python3 packaging/build_linux.py
+      - name: Verify installed package
+        run: |
+          sudo apt-get install -y ./dist/*.deb
+          test -x /usr/bin/ai-glass
+          xvfb-run -a timeout 20 env AI_GLASS_DATA_DIR="$RUNNER_TEMP/ai-glass-smoke" /usr/bin/ai-glass --smoke-test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-package
+          path: dist/*.deb
+  windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-windows.txt
+      - run: python -m pip install -r requirements-windows.txt
+      - name: Tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+          PYTHONUTF8: 1
+        run: |
+          python -m unittest discover -s tests -v
+          python tests/windows_ui_checks.py
+      - name: Build installer
+        run: python packaging/build_windows.py
+      - name: Smoke packaged executable
+        shell: pwsh
+        run: |
+          $env:QT_QPA_PLATFORM = 'offscreen'
+          $env:AI_GLASS_DATA_DIR = "$env:RUNNER_TEMP\ai-glass-smoke"
+          $p = Start-Process dist/AI-Glass/AI-Glass.exe -ArgumentList '--smoke-test' -PassThru -Wait
+          if ($p.ExitCode -ne 0) { throw "Packaged app failed: $($p.ExitCode)" }
+          if (!(Test-Path "$env:AI_GLASS_DATA_DIR\smoke-ok")) { throw 'No smoke success marker' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: dist/*-setup.exe
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [linux, windows]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+      - name: Publish verified artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "${GITHUB_REF_NAME#v}" = "$(cat VERSION)"
+          (cd release && sha256sum *.deb *.exe > SHA256SUMS)
+          gh release create "$GITHUB_REF_NAME" release/* --title "AI Glass $GITHUB_REF_NAME" --notes-file RELEASE_NOTES.md --prerelease

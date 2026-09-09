@@ -1,0 +1,5 @@
+PySide6==6.10.2
+psutil==7.2.2
+pywinpty==3.0.3; sys_platform == 'win32'
+pyinstaller==6.21.0
+Pillow==12.1.1
