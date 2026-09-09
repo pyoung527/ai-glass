@@ -13,18 +13,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install native dependencies
-        run: sudo apt-get update && sudo apt-get install -y python3-gi gir1.2-gtk-3.0 gir1.2-wnck-3.0 librsvg2-common xvfb xterm
+        run: sudo apt-get update && sudo apt-get install -y python3-gi gir1.2-gtk-3.0 gir1.2-wnck-3.0 librsvg2-common xvfb xterm gnome-settings-daemon-common dbus-x11
       - name: Tests
         run: |
           GSETTINGS_BACKEND=memory /usr/bin/python3 -m unittest discover -s tests -v
-          xvfb-run -a env GSETTINGS_BACKEND=memory /usr/bin/python3 tests/ui_checks.py
+          xvfb-run -a dbus-run-session -- env GSETTINGS_BACKEND=memory /usr/bin/python3 tests/ui_checks.py
       - name: Build package
         run: /usr/bin/python3 packaging/build_linux.py
       - name: Verify installed package
         run: |
           sudo apt-get install -y ./dist/*.deb
           test -x /usr/bin/ai-glass
-          xvfb-run -a timeout 20 env AI_GLASS_DATA_DIR="$RUNNER_TEMP/ai-glass-smoke" /usr/bin/ai-glass --smoke-test
+          xvfb-run -a dbus-run-session -- timeout 20 env AI_GLASS_DATA_DIR="$RUNNER_TEMP/ai-glass-smoke" /usr/bin/ai-glass --smoke-test
       - uses: actions/upload-artifact@v4
         with:
           name: linux-package
