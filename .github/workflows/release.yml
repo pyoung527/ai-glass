@@ -48,14 +48,22 @@ jobs:
           python tests/windows_ui_checks.py
       - name: Build installer
         run: python packaging/build_windows.py
-      - name: Smoke packaged executable
+      - name: Verify installation, executable and uninstall
         shell: pwsh
         run: |
           $env:QT_QPA_PLATFORM = 'offscreen'
           $env:AI_GLASS_DATA_DIR = "$env:RUNNER_TEMP\ai-glass-smoke"
-          $p = Start-Process dist/AI-Glass/AI-Glass.exe -ArgumentList '--smoke-test' -PassThru -Wait
+          $installDir = "$env:RUNNER_TEMP\AI Glass installed"
+          $installer = (Get-ChildItem dist/*-setup.exe).FullName
+          $setup = Start-Process $installer -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR=`"$installDir`"" -PassThru -Wait
+          if ($setup.ExitCode -ne 0) { throw "Installer failed: $($setup.ExitCode)" }
+          $p = Start-Process "$installDir\AI-Glass.exe" -ArgumentList '--smoke-test' -PassThru -Wait
           if ($p.ExitCode -ne 0) { throw "Packaged app failed: $($p.ExitCode)" }
           if (!(Test-Path "$env:AI_GLASS_DATA_DIR\smoke-ok")) { throw 'No smoke success marker' }
+          $uninstall = Start-Process "$installDir\unins000.exe" -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -PassThru -Wait
+          if ($uninstall.ExitCode -ne 0) { throw "Uninstall failed: $($uninstall.ExitCode)" }
+          if (Test-Path "$installDir\AI-Glass.exe") { throw 'Executable left after uninstall' }
+          if (!(Test-Path "$env:AI_GLASS_DATA_DIR\smoke-ok")) { throw 'User data removed on uninstall' }
       - uses: actions/upload-artifact@v4
         with:
           name: windows-installer
