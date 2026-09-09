@@ -4,6 +4,12 @@ Windows / Ubuntu 바탕화면에 띄우는 반투명 네이티브 위젯입니�
 Codex · Claude Code · Antigravity의 **잔여 사용량과 로컬 세션**을 확인합니다.
 브라우저나 별도 서버를 실행하지 않습니다.
 
+<p align="center">
+  <img src="docs/images/overview.png" width="620" alt="AI Glass 메인 위젯: Codex, Claude Code, Antigravity의 잔여 사용량과 실행 세션 수" />
+</p>
+
+<p align="center"><em>Ubuntu에서 촬영한 실제 앱 화면입니다. 사용량과 세션은 예시 데이터이며 Windows 버전은 UI에 일부 차이가 있습니다.</em></p>
+
 ## 다운로드
 
 [GitHub Releases](https://github.com/pyoung527/ai-glass/releases)에서 OS에 맞는 파일을 받으세요.
@@ -36,6 +42,13 @@ Linux 설치: `sudo apt install ./ai-glass_1.0.0_amd64.deb` 후 앱 목록의 **
 Antigravity의 Gemini / Claude·GPT 한도는 **Antigravity 안에서 사용하는 모델 한도**입니다.
 별도 ChatGPT·Claude 구독 한도와 합산하지 않습니다.
 15분 이상 지난 수치는 갱신 필요로 표시하며, 초기화 시간이 지났다고 임의로 100%로 만들지 않습니다.
+
+## 화면 미리보기
+
+| 세션 목록 | 위젯 설정 |
+|:---:|:---:|
+| <img src="docs/images/sessions.png" width="410" alt="Codex 세션 목록: 실행 중·최근 기록 전환, 검색, 즐겨찾기와 세션 열기" /> | <img src="docs/images/settings.png" width="410" alt="위젯 설정: 유리 농도, 위치 잠금, 가장자리 붙이기, 사용량 알림과 자동 시작" /> |
+| 프로젝트별 작업을 검색하고 즐겨찾기로 관리합니다. | 투명도·위치·알림을 바탕화면 환경에 맞게 조절합니다. |
 
 ## 조회 방식과 인증
 
