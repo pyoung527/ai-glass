@@ -30,7 +30,7 @@ jobs:
           name: linux-package
           path: dist/*.deb
   windows:
-    runs-on: windows-2022
+    runs-on: windows-2025
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -55,8 +55,8 @@ jobs:
           $env:AI_GLASS_DATA_DIR = "$env:RUNNER_TEMP\ai-glass-smoke"
           $installDir = "$env:RUNNER_TEMP\AI Glass installed"
           $installer = (Get-ChildItem dist/*-setup.exe).FullName
-          $setup = Start-Process $installer -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR=`"$installDir`"" -PassThru -Wait
-          if ($setup.ExitCode -ne 0) { throw "Installer failed: $($setup.ExitCode)" }
+          $setup = Start-Process $installer -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG=`"$env:RUNNER_TEMP\install.log`" /DIR=`"$installDir`"" -PassThru -Wait
+          if ($setup.ExitCode -ne 0) { Get-Content "$env:RUNNER_TEMP\install.log"; throw "Installer failed: $($setup.ExitCode)" }
           $p = Start-Process "$installDir\AI-Glass.exe" -ArgumentList '--smoke-test' -PassThru -Wait
           if ($p.ExitCode -ne 0) { throw "Packaged app failed: $($p.ExitCode)" }
           if (!(Test-Path "$env:AI_GLASS_DATA_DIR\smoke-ok")) { throw 'No smoke success marker' }
